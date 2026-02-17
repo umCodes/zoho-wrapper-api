@@ -29,7 +29,7 @@ export async function ZohoCreateSalesOrder(salesOrderDataPayload: string, header
 export async function ZohoGetSalesOrders(headers: string){
     
     try {
-        const response = await fetch(`https://www.zohoapis.com/inventory/v1/salesorders?organization_id=${process.env.ORGANIZATION_ID}`, {
+        const response = await fetch(`https://www.zohoapis.com/inventory/v1/salesorders?organization_id=${process.env.ORGANIZATION_ID}&status=draft`, {
             method: 'GET',
             headers: {
                 'Authorization': headers,
@@ -64,3 +64,44 @@ export async function ZohoGetSalesOrderById(id: string, headers: string){
     }
 }
 
+
+export async function ZohoConfirmSalesOrder(salesorderId: string, headers: string) {
+    try {
+        const response = await fetch(`https://www.zohoapis.com/inventory/v1/salesorders/${salesorderId}/status/confirmed?organization_id=${process.env.ORGANIZATION_ID}`, {
+            method: 'POST',
+            headers: {
+                'Authorization': headers,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({}),
+        });
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('ZohoConfirmSalesOrder Error:', error);
+        throw error;
+    }
+}
+
+
+
+export async function ZohoGetShipments(headers: string){
+    
+    try {
+        const response = await fetch(`https://www.zohoapis.com/inventory/v1/salesorders?organization_id=${process.env.ORGANIZATION_ID}`, {
+            method: 'GET',
+            headers: {
+                'Authorization': headers,
+            }})
+        const data = await response.json()
+        
+        const filtered = data.salesorders.filter((so: any) => so.shipped_status === "shipped" || so.shipped_status === "partially_shipped");
+        console.log(filtered);
+        
+        return filtered              
+    } catch (error) {
+        console.error(error);
+        throw error;        
+    }
+}

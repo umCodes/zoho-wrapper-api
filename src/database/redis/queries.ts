@@ -16,7 +16,16 @@ export async function obtainDataWithRedis(key: string, cb: () => Promise<string>
         console.error(error);
         throw error
     }
-    
+}
+
+export default async function removeDataFromRedis(key: string){
+    try {
+        const data = await redisClient.del(key);
+    } catch (error) {
+        console.error(error);
+        throw error;
+            
+    }
 }
 
 

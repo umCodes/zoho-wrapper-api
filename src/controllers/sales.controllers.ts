@@ -1,8 +1,8 @@
 import { NextFunction, Request, Response } from "express";
-import { ZohoCreateSalesOrder, ZohoGetSalesOrderById, ZohoGetSalesOrders } from "../services/sales.services";
+import { ZohoCreateSalesOrder, ZohoGetSalesOrderById, ZohoGetSalesOrders, ZohoGetShipments } from "../services/sales.services";
 import { SalesOrder, SalesOrderKeys, SalesOrderLineItemKeys } from "../models/sales.models";
 import { HttpError } from "../errors/error";
-import { obtainDataWithRedis } from "../database/redis/queries";
+import removeDataFromRedis, { obtainDataWithRedis } from "../database/redis/queries";
 import { pick } from "../utils/helpers";
 
 
@@ -11,6 +11,8 @@ import { pick } from "../utils/helpers";
 export async function createSalesOrder(req: Request, res: Response, next: NextFunction){
     const salesOrderData: SalesOrder = req.body || {};
 
+    console.log(salesOrderData);
+    
     // Required fields:
     const requiredFields: SalesOrderKeys = ['customer_id', "line_items"]
     const requiredItemsFields: SalesOrderLineItemKeys = ['item_id', "quantity"]
@@ -18,7 +20,7 @@ export async function createSalesOrder(req: Request, res: Response, next: NextFu
     try{
         // Check if Required fields are provided:
         if(!requiredFields.every(field => field in salesOrderData)) throw new HttpError('Missing required fields in item data.', 400)
-        if(!requiredItemsFields.every(field => field in salesOrderData.line_items)) throw new HttpError('Missing required fields in location data.', 400)
+        if(!requiredItemsFields.every(field => salesOrderData.line_items.every(item => field in item))) throw new HttpError('Missing required fields in line_item data.', 400)
 
         // Check whether provided fields are valid:
         if(!salesOrderData.customer_id) throw new HttpError('Customer ID not provided', 400)
@@ -27,13 +29,12 @@ export async function createSalesOrder(req: Request, res: Response, next: NextFu
         
         // Create Order with Zoho
         const response = await ZohoCreateSalesOrder(JSON.stringify({
-            customer_id: "4645478000000082678",
-            line_items: [{
-                item_id: "4645478000001128142",
-                quantity: 1
-            }]
+            customer_id: salesOrderData.customer_id,
+            line_items: salesOrderData.line_items
         }), req.headers['Authorization'] as string);
         
+
+        await removeDataFromRedis("salesorders")
         return res.status(200).json(response);
     }catch(error){
         console.error("Error:", error);
@@ -46,23 +47,22 @@ export async function createSalesOrder(req: Request, res: Response, next: NextFu
 // GET | OBTAIN
 export async function getSalesOrders(req: Request, res: Response, next: NextFunction) {
     try {
-        const salesorders = await obtainDataWithRedis('salesordes', async () => {
             
-            //Get full data from zoho
-            const fullData =  await ZohoGetSalesOrders(req.headers['Authorization'] as string)
-            
-            // Fields Constraints
-            const neededFields = [
-                "salesorder_id", "customer_name", "customer_id", "total", "date",
-                "salesorder_number", "quantity", "order_status", "invoiced_status",
-                "paid_status", "shipped_status", "status", "balance"
-            ];
+        //Get full data from zoho
+        const fullData =  await ZohoGetSalesOrders(req.headers['Authorization'] as string)
+        
+        // Fields Constraints
+        const neededFields = [
+            "salesorder_id", "customer_name", "customer_id", "total", "date",
+            "salesorder_number", "quantity", "order_status", "invoiced_status",
+            "paid_status", "shipped_status", "status", "balance"
+        ];
 
-            // Apply constraints
-           const neededDataArr = fullData.map((order: any) => pick(order, neededFields))
+        // Apply constraints
+        const neededDataArr = fullData.map((order: any) => pick(order, neededFields))
 
-            return JSON.stringify(neededDataArr)
-        })
+        const salesorders =  JSON.stringify(neededDataArr)
+        
 
         if(!salesorders) return res.status(404).json({message: 'No salesorders found'})
         return res.status(200).json(JSON.parse(salesorders));
@@ -90,7 +90,7 @@ export async function getSalesOrderById(req: Request, res: Response, next: NextF
                     "salesorder_number", "order_status", "invoiced_status",
                     "paid_status", "shipped_status", "status", "balance", "line_items"
                 ];
-                const neededLineItemsFields = ["item_id", "name", "quantity", "rate", "item_total"]
+                const neededLineItemsFields = ["item_id", "line_item_id" , "name", "unit", "quantity", "rate", "item_total"]
 
                 //If data not corrcetly obtained, throw an error
                 if( Object.keys(order).length === 0 ) throw new Error('A problem occured retrieving data, please try again.')
@@ -101,6 +101,8 @@ export async function getSalesOrderById(req: Request, res: Response, next: NextF
                     line_items: order.line_items.map((item: any) => pick(item, neededLineItemsFields))
                 }
 
+                console.log(filtered.line_items);
+                
                 return JSON.stringify(filtered)
             
             } catch (error) {
@@ -116,5 +118,33 @@ export async function getSalesOrderById(req: Request, res: Response, next: NextF
     } catch (error) {
         console.error(error);
         next(error);
+    }
+}
+
+
+export async function getShipments(req: Request, res: Response, next: NextFunction) {
+    try {
+            
+        //Get full data from zoho
+        const fullData =  await ZohoGetShipments(req.headers['Authorization'] as string)
+        
+        // Fields Constraints
+        const neededFields = [
+            "salesorder_id", "customer_name", "customer_id", "total", "date",
+            "salesorder_number", "quantity", "order_status", "invoiced_status",
+            "paid_status", "shipped_status", "status", "balance"
+        ];
+
+        // Apply constraints
+        const neededDataArr = fullData.map((order: any) => pick(order, neededFields))
+
+        const salesorders =  JSON.stringify(neededDataArr)
+        
+
+        if(!salesorders) return res.status(404).json({message: 'No salesorders found'})
+        return res.status(200).json(JSON.parse(salesorders));
+    } catch (error) {
+        console.error(error);
+        return next(error)
     }
 }

@@ -3,7 +3,7 @@ export type Assembly = {
     composite_item_id: string;
     composite_item_name: string;
     description: string;
-    refrence_number: string;
+    warehouse_id: string;
     date: string;
     quantity_to_bundle: number;
     line_items: LineItem[];
@@ -16,9 +16,8 @@ type LineItem = {
     name: string;
     quantity_consumed: number;
     unit: string;
-    account_id: string;
-    location_id: string;
+    warehouse_id: string;
 }
 
-export type AssemblyKeys = ["composite_item_id", "composite_item_name", "description", "refrence_number", "date", "quantity_to_bundle", "line_items", "is_complete"];
-export type LineItemKeys = ["item_id", "name", "quantity_consumed", "unit", "account_id", "location_id"];
+export type AssemblyKeys = ["composite_item_id", "composite_item_name", "description", "date", "quantity_to_bundle", "line_items", "is_complete", "warehouse_id"];
+export type AssemblyLineItemKeys = ["item_id", "name", "quantity_consumed", "unit", "warehouse_id"];

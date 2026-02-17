@@ -13,7 +13,7 @@ export const ACCESS_TOKEN_EXPIRY = Number(process.env.ACCESS_TOKEN_EXPIRY);
 export const REFRESH_TOKEN_EXPIRY = Number(process.env.REFRESH_TOKEN_EXPIRY);
 
 
-
+export const WAREHOUSE_ID = String(process.env.WAREHOUESE_ID); 
 //  Development DB
 
 export const DB_CONFIG = {

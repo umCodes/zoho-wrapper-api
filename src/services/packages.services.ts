@@ -2,7 +2,10 @@
 
 export async function ZohoCreatePackage(salesorder_id: string, body: string , headers: string) {
     try {
-
+        console.log(`https://www.zohoapis.com/inventory/v1/packages?organization_id=${process.env.ORGANIZATION_ID}&salesorder_id=${salesorder_id}`);
+        console.log(body);
+        
+        
         const response = await fetch(`https://www.zohoapis.com/inventory/v1/packages?organization_id=${process.env.ORGANIZATION_ID}&salesorder_id=${salesorder_id}`, {
             method: "POST",
             headers: {
@@ -36,6 +39,25 @@ export async function ZohoGetPackages(headers: string) {
         console.log(data);
         
         return data.packages; 
+    } catch (error) {
+        throw error;
+    }
+}
+
+export async function ZohoGetPackageById(id: string, headers: string) {
+    try {
+
+        const response = await fetch(`https://www.zohoapis.com/inventory/v1/packages/${id}?organization_id=${process.env.ORGANIZATION_ID}&filter_by=Status.NotShipped`, {
+            method: "GET",
+            headers: {
+                'Authorization': headers,
+            }
+        })
+
+        const data = await response.json();
+        console.log(data);
+        
+        return data.package; 
     } catch (error) {
         throw error;
     }

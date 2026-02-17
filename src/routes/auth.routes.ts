@@ -5,7 +5,7 @@ const authRouter = Router();
 
 authRouter.post('/api/auth/register', register)
 authRouter.post('/api/auth/login', login)
-authRouter.post('/api/auth/logout', logout)
+authRouter.delete('/api/auth/logout', logout)
 authRouter.post('/api/auth/refresh', refreshToken)
 
 export default authRouter;

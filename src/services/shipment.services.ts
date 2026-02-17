@@ -25,3 +25,26 @@ export async function ZohoCreateShipment(salesorder_id: string, package_ids: str
         
     }
 }
+
+//shipmentorders
+
+export async function ZohoGetShipmentById(id: string, headers: string){ 
+    console.log(id);
+    
+    try {    
+        const response = await fetch(`https://www.zohoapis.com/inventory/v1/salesorders/${id}?organization_id=${process.env.ORGANIZATION_ID}`, {
+            method: 'GET',
+            headers: {
+                'Authorization': headers,
+            }})
+        const data = await response.json()
+        // console.log("🟢 Order:  ", data.salesorder);
+
+        if(!data) throw new Error('Sales not found')
+        return data.salesorder;
+    } catch (error) {
+        console.error(error);
+        throw error;        
+    }
+}
+
