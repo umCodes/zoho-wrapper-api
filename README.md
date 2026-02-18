@@ -35,7 +35,7 @@ All routes **except**:
 - `POST /api/auth/register`
 - `POST /api/auth/login`
 
-require the following header:
+require the following headers:
 
 ```
 
@@ -50,9 +50,6 @@ The authentication middleware:
 - Attaches the decoded payload to `req.user`
 - Rejects missing or invalid tokens
 
-Additional headers required for specific routes:
-
-- Logout and Refresh:
 ```
 
 auth-refresh-token: <refresh_token>
