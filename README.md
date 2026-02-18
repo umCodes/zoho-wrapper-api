@@ -1,4 +1,3 @@
-```md
 # Zoho Inventory API Wrapper
 
 A backend service that wraps the Zoho Inventory API to simplify data entry, normalize request payloads, and return cleaner, developer-friendly responses.  
