@@ -60,9 +60,10 @@ auth-refresh-token: <refresh_token>
 
 # API Endpoints
 
-> Unless stated otherwise, all endpoints require:
+> Unless stated above otherwise, all endpoints require:
 >
 > `Authorization: Bearer <access_token>`
+> `auth-refresh-token: <refresh_token>`
 
 ---
 
